@@ -12,7 +12,14 @@ class Type(object):
     def is_subtype_of(self, other):
         """ True if this type can be used where the other type is expected.
         """
-        return True  # TODO: implement
+        if self.name == other.name:
+            return True
+        if other in self.direct_supertypes:
+            return True
+        for i in self.direct_supertypes:
+            if i.is_subtype_of(other):
+                return True
+        return False
 
     def is_supertype_of(self, other):
         """ Convenience counterpart to is_subtype_of().
@@ -39,7 +46,6 @@ class Method(object):
 class ClassOrInterface(Type):
     """
     Describes the API of a class-like Java type (class or interface).
-
     (This type model does not draw a distinction between classes and interfaces,
     and assumes they are all instantiable. Other than instantiability, the
     distinction makes no difference to us here: we are only checking types, not
@@ -63,7 +69,12 @@ class ClassOrInterface(Type):
                     return supertype.method_named(name)
                 except NoSuchMethod:
                     pass
-            raise NoSuchMethod("{0} has no method named {1}".format(self.name, name))
+            raise NoSuchMethod(
+                "{0} has no method named {1}".format(
+                    self.name,
+                    name
+                )
+            )
 
 
 class NullType(Type):
@@ -71,6 +82,9 @@ class NullType(Type):
     """
     def __init__(self):
         super().__init__("null")
+
+    def method_named(self, name):
+        raise NoSuchMethod("Cannot invoke method {0}() on null".format(name))
 
 
 class NoSuchMethod(Exception):
@@ -88,7 +102,7 @@ Type.double  = Type("double")
 Type.null    = NullType()
 
 Type.object = ClassOrInterface("Object",
-    methods=[
-        Method("equals", argument_types=[object], return_type=Type.boolean),
-        Method("hashCode", return_type=Type.int),
-    ])
+                               methods=[
+                                   Method("equals", argument_types=[object], return_type=Type.boolean),
+                                   Method("hashCode", return_type=Type.int),
+                               ])

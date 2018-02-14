@@ -35,5 +35,6 @@ class TestStaticTypes(TypeTest):
             Graphics.point,
             ConstructorCall(Graphics.point).static_type())
 
+
 if __name__ == '__main__':
     unittest.main()
