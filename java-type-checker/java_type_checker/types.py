@@ -12,12 +12,10 @@ class Type(object):
     def is_subtype_of(self, other):
         """ True if this type can be used where the other type is expected.
         """
-        if self.name == other.name:
+        if other is self:
             return True
-        if other in self.direct_supertypes:
-            return True
-        for i in self.direct_supertypes:
-            if i.is_subtype_of(other):
+        for direct_supertype in self.direct_supertypes:
+            if other is direct_supertype or direct_supertype.is_subtype_of(other):
                 return True
         return False
 
@@ -69,12 +67,7 @@ class ClassOrInterface(Type):
                     return supertype.method_named(name)
                 except NoSuchMethod:
                     pass
-            raise NoSuchMethod(
-                "{0} has no method named {1}".format(
-                    self.name,
-                    name
-                )
-            )
+            raise NoSuchMethod("{0} has no method named {1}".format(self.name, name))
 
 
 class NullType(Type):
@@ -84,7 +77,16 @@ class NullType(Type):
         super().__init__("null")
 
     def method_named(self, name):
-        raise NoSuchMethod("Cannot invoke method {0}() on null".format(name))
+        """
+        Raises a NoSuchMethod error since null has no method.
+        """
+        raise NoSuchMethod("Cannot invoke method {1}() on null".format(self.name, name))
+
+    def is_subtype_of(self, other):
+        return type(other) == ClassOrInterface
+
+    def is_supertype_of(self, other):
+        return other.is_subtype_of(self)
 
 
 class NoSuchMethod(Exception):

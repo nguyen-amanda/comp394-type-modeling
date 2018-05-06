@@ -41,18 +41,12 @@ public class PythonType extends PythonObject {
 
     @Override
     protected List<PythonObject> buildMRO() {
-        List<PythonObject> mro = new ArrayList<>();
-        PythonType type = this;
-        while (type != null) {
-            mro.add(type);
-            if (base == null) return mro;
-            else if (base.getType() == null) {
-                mro.add(base);
-                return mro;
-            }
-            type = base.getType();
+        List<PythonObject> mroList = new ArrayList<>();
+        mroList.add(this);
+        if (base != null) {
+            mroList.addAll(base.buildMRO());
         }
-        return mro;
+        return mroList;
     }
 
     /**
